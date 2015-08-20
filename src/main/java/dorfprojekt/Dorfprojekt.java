@@ -26,7 +26,7 @@ import cpw.mods.fml.common.registry.GameRegistry;
 public class Dorfprojekt
 {
     public static final String MODID = "dorfprojekt";
-    public static final String VERSION = "07";
+    public static final String VERSION = "08";
         
     public static int borderRenderID;
     public static BlockBorder borderBlock;
