@@ -1,0 +1,16 @@
+[
+{
+  "modid": "dorfprojekt",
+  "name": "Dorfprojekt",
+  "description": "PinguinBiFi",
+  "version": "07",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["miucat17"],
+  "credits": "Wilhelm Wilhelm Wilhelm",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]

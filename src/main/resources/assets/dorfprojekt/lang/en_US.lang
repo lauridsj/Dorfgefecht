@@ -1,0 +1,16 @@
+dorfprojekt.attackable=[Dorfprojekt] Team %s is attackable now!
+dorfprojekt.delayLeft=[Dorfprojekt] Team %s is no longer attackable in %s seconds.
+dorfprojekt.notAttackable=[Dorfprojekt] Team %s is no longer attackable.
+dorfprojekt.noMoreBlocks=[Dorfprojekt] Your team can't place any more blocks!
+dorfprojekt.battleTimeoutOver=[Dorfprojekt] The peace phase is over for team %s.
+dorfprojekt.battleTimeout=[Dorfprojekt] Team %s is now in a peace phase for %s.
+dorfprojekt.crownStolen=[Dorfprojekt] TEAM %s HAS CAPTURED THE CROWN OF TEAM %s!
+dorfprojekt.crownRespawned=[Dorfprojekt] The crown of team %s has respawned in their territory.
+dorfprojekt.crownPlaced=[Dorfprojekt] The crown of team %s was returned.
+dorfprojekt.crownTaken=[Dorfprojekt] The crown of team %s has been taken!
+
+tile.border.name=Border
+tile.crown_podest.name=Crown Podest
+tile.crown_podest.cantPlace=The Crown Podest must be placed in an empty 3x3 cube.
+
+item.crown.name=Crown

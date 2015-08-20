@@ -1,0 +1,16 @@
+dorfprojekt.attackable=[Dorfprojekt] Team %s ist nun angreifbar!
+dorfprojekt.delayLeft=[Dorfprojekt] Team %s ist in %s Sekunden nicht mehr angreifbar.
+dorfprojekt.notAttackable=[Dorfprojekt] Team %s ist nicht mehr angreifbar.
+dorfprojekt.noMoreBlocks=[Dorfprojekt] Dein Team kann keine Blöcke mehr platzieren!
+dorfprojekt.battleTimeoutOver=[Dorfprojekt] Die Friedensphase für Team %s ist vorbei.
+dorfprojekt.battleTimeout=[Dorfprojekt] Team %s ist nun für %s in einer Friedensphase.
+dorfprojekt.crownStolen=[Dorfprojekt] TEAM %s HAT DIE KRONE VON TEAM %s EROBERT!
+dorfprojekt.crownRespawned=[Dorfprojekt] Die Krone von Team %s ist in ihrem Territorium respawned.
+dorfprojekt.crownPlaced=[Dorfprojekt] Die Krone von Team %s wurde zurückgebracht.
+dorfprojekt.crownTaken=[Dorfprojekt] Die Krone von Team %s wurde genommen!
+
+tile.border.name=Grenze
+tile.crown_podest.name=Kronpodest
+tile.crown_podest.cantPlace=Das Kronpodest muss in einem leeren 3x3-Bereich platziert werden.
+
+item.crown.name=Krone
