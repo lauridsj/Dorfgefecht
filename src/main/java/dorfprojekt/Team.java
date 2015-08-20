@@ -140,6 +140,7 @@ public class Team {
 			teamTag.setTag("crownPodest", Coords4.toNBT(team.crownPodest));
 			teamTag.setInteger("crownsStolen", team.crownsStolen);
 			teamTag.setInteger("battleTimeoutLeft", team.battleTimeoutLeft);
+			teamTag.setBoolean("currentlyAttackable", team.currentlyAttackable);
 
 			tag.setTag(name, teamTag);
 		}
@@ -178,6 +179,7 @@ public class Team {
 			team.crownPodest = Coords4.fromNBT(teamTag.getCompoundTag("crownPodest"));
 			team.crownsStolen = teamTag.getInteger("crownsStolen");
 			team.battleTimeoutLeft = teamTag.getInteger("battleTimeoutLeft");
+			team.currentlyAttackable = teamTag.getBoolean("currentlyAttackable");
 
 			teamMap.put(name, team);
 		}
@@ -224,7 +226,7 @@ public class Team {
 	{
 		if(FMLCommonHandler.instance().getSide().isServer())
 		{
-			Dorfprojekt.networkChannel.sendToAll(getUpdatePacket());
+			MinecraftServer.getServer().getConfigurationManager().sendPacketToAllPlayers(getUpdatePacket());
 		}
 	}
 
@@ -273,18 +275,19 @@ public class Team {
 					}
 				}
 			}
-			Dorfprojekt.networkChannel.sendToAll(this.getAttackablePacket());
+			System.out.println("Sending attackable Packet");
+			sendClientUpdates();
 		}
 	}
 
-	public FMLProxyPacket getAttackablePacket()
+	/*public FMLProxyPacket getAttackablePacket()
 	{
 		StreamHelper.newOutputStream();
 		StreamHelper.writeInt(NetworkHandler.UPDATE_ATTACKABLE);
 		StreamHelper.writeString(name);
 		StreamHelper.writeBoolean(currentlyAttackable);
 		return StreamHelper.getPacket();
-	}
+	}*/
 
 	public boolean isCurrentlyAttacked(World world)
 	{
@@ -343,7 +346,7 @@ public class Team {
 			break;
 		}
 
-		ent.setPosition(x, ent.worldObj.getTopSolidOrLiquidBlock(MathHelper.floor_double(x), MathHelper.floor_double(z)), z);
+		ent.setPosition(x, ent.worldObj.getTopSolidOrLiquidBlock(MathHelper.floor_double(x), MathHelper.floor_double(z)) + 2, z);
 	}
 
 	public void setBattleTimeout(int ticks)
@@ -366,7 +369,11 @@ public class Team {
 		{
 			s = ((double)ticks / 20d) + " s";
 		}
-
+		
+		if(ticks > 0)
+		{
+			this.setAttackable(false);
+		}
 		Util.sendTranslatedChatToAll("dorfprojekt.battleTimeout", this.getColoredName(), s);
 		Team.sendClientUpdates();
 	}

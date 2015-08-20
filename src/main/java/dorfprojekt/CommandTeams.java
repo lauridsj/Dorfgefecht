@@ -269,7 +269,7 @@ public class CommandTeams extends CommandBase {
 			}
 		}
 
-		Dorfprojekt.networkChannel.sendToAll(Team.getUpdatePacket());
+		Team.sendClientUpdates();
 	}
 
 	public List addTabCompletionOptions(ICommandSender sender, String[] args)

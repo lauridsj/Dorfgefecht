@@ -7,6 +7,7 @@ import java.util.Collection;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
@@ -16,6 +17,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
@@ -33,6 +35,8 @@ public class BlockCrownPodest extends BlockContainer {
 		this.setBlockName("crown_podest");
 		this.setBlockTextureName("minecraft:stone");
 		this.setBlockBounds(0, 0, 0, 1, 0.75f, 1);
+		this.setHardness(4f);
+		this.setResistance(20000f);
 		this.setCreativeTab(CreativeTabs.tabDecorations);
 	}
 
@@ -178,20 +182,26 @@ public class BlockCrownPodest extends BlockContainer {
 		return false;
 	}
 
-	public ArrayList<ItemStack> getDrops(World world, int x, int y, int z, int metadata, int fortune)
-	{
-		ArrayList<ItemStack> list = super.getDrops(world, x, y, z, metadata, fortune);
+	
+	
+	public void breakBlock(World world, int x, int y, int z, Block block, int meta)
+    {
 		TileEntity te = world.getTileEntity(x, y, z);
 		if(te instanceof TileCrownPodest)
 		{
 			TileCrownPodest tcp = (TileCrownPodest) te;
 			if(tcp.hasCrown && tcp.team != null)
 			{
-				list.add(ItemCrown.getCrownForTeam(tcp.getTeam()));
+				ItemStack itemstack = ItemCrown.getCrownForTeam(tcp.getTeam());
+                EntityItem entityitem = new EntityItem(world, x + 0.5, y + 0.5, z + 0.5, itemstack);
+                world.spawnEntityInWorld(entityitem);
+                
+                if (itemstack.hasTagCompound())
+                {
+                    entityitem.getEntityItem().setTagCompound((NBTTagCompound)itemstack.getTagCompound().copy());
+                }
 			}
 		}
-		
-		return list;
-	}
+    }
 
 }

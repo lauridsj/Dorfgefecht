@@ -35,20 +35,12 @@ public class FMLEventHandler {
 			EntityPlayerMP emp = (EntityPlayerMP) event.player;
 			Dorfprojekt.networkChannel.sendTo(Team.getUpdatePacket(), emp);
 			Dorfprojekt.networkChannel.sendTo(Dorfprojekt.getConfigPacket(), emp);
-			for(Team team : Team.teamMap.values())
-			{
-				if(team.isAttackable())
-				{
-					Dorfprojekt.networkChannel.sendTo(team.getAttackablePacket(), emp);
-				}
-			}
 		}
 	}
 	
 	@SubscribeEvent
 	public void onServerTick(TickEvent.ServerTickEvent event)
 	{
-
 		if(event.phase == TickEvent.Phase.START)
 		{
 			for(Coords4 coords : BlockBorder.scheduledBorders.keySet())

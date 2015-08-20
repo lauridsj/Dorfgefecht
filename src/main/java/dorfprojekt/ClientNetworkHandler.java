@@ -15,16 +15,19 @@ public class ClientNetworkHandler extends NetworkHandler {
 		
 		if(packetID == UPDATE_TEAMS)
 		{
-			System.out.println("Recieved Team Update Packet");
 			NBTTagCompound tag = StreamHelper.readNBTTagCompound();		
 			Team.readFromNBT(tag);
+			System.out.printf("Recieved Team Update Packet: %s\n", tag.toString());
+
 			//Minecraft.getMinecraft().renderGlobal.loadRenderers();
 		}
 		else if(packetID == UPDATE_ATTACKABLE)
 		{
-			System.out.println("Recieved Attackable Update Packet");
 			Team team = Team.getTeam(StreamHelper.readString());
-			team.setAttackable(StreamHelper.readBoolean());
+			boolean attackable = StreamHelper.readBoolean();
+			team.setAttackable(attackable);
+			System.out.printf("Recieved Attackable Update Packet: Team %s; %s\n", team.name, attackable);
+
 		}
 		else if(packetID == UPDATE_CONFIG)
 		{
