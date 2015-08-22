@@ -22,7 +22,7 @@ public class BlockBorder extends Block {
 	//meta 1 = open
 
 	public static HashMap<Coords4, Integer> scheduledBorders = new HashMap<Coords4, Integer>();
-	
+
 	private IIcon crossIcon;
 
 
@@ -103,34 +103,45 @@ public class BlockBorder extends Block {
 			world.setBlockToAir(x, y, z);
 		}
 	}
-	
+
 	public void addCollisionBoxesToList(World world, int x, int y, int z, AxisAlignedBB aabb, List list, Entity entity)
-    {
-		if(entity instanceof EntityPlayer)
+	{
+		if(entity != null)
 		{
-			EntityPlayer player = (EntityPlayer) entity;
-			Team team = Team.getTeamForCoords(x, z);
-			if(team.isPlayerInTeam(player) || player.capabilities.isCreativeMode)
+			if(entity instanceof EntityPlayer)
 			{
-				return;
+				EntityPlayer player = (EntityPlayer) entity;
+				Team team = Team.getTeamForCoords(x, z);
+				if(!team.isPlayerInTeam(player) && !player.capabilities.isCreativeMode)
+				{
+					super.addCollisionBoxesToList(world, x, y, z, aabb, list, entity);
+				}
+			}
+			else if(entity.riddenByEntity != null && entity.riddenByEntity instanceof EntityPlayer)
+			{
+				EntityPlayer player = (EntityPlayer) entity.riddenByEntity;
+				Team team = Team.getTeamForCoords(x, z);
+				if(!team.isPlayerInTeam(player) && !player.capabilities.isCreativeMode)
+				{
+					super.addCollisionBoxesToList(world, x, y, z, aabb, list, entity);
+				}
 			}
 		}
-		super.addCollisionBoxesToList(world, x, y, z, aabb, list, entity);
-    }
-	
+	}
+
 	/**
-     * Determines if a new block can be replace the space occupied by this one,
-     * Used in the player's placement code to make the block act like water, and lava.
-     *
-     * @param world The current world
-     * @param x X Position
-     * @param y Y position
-     * @param z Z position
-     * @return True if the block is replaceable by another block
-     */
-    public boolean isReplaceable(IBlockAccess world, int x, int y, int z)
-    {
-    	return true;
-    }
+	 * Determines if a new block can be replace the space occupied by this one,
+	 * Used in the player's placement code to make the block act like water, and lava.
+	 *
+	 * @param world The current world
+	 * @param x X Position
+	 * @param y Y position
+	 * @param z Z position
+	 * @return True if the block is replaceable by another block
+	 */
+	public boolean isReplaceable(IBlockAccess world, int x, int y, int z)
+	{
+		return true;
+	}
 
 }

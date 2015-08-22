@@ -26,7 +26,7 @@ import cpw.mods.fml.common.registry.GameRegistry;
 public class Dorfprojekt
 {
     public static final String MODID = "dorfprojekt";
-    public static final String VERSION = "08";
+    public static final String VERSION = "10";
         
     public static int borderRenderID;
     public static BlockBorder borderBlock;
@@ -52,6 +52,13 @@ public class Dorfprojekt
     public static boolean slowdownInOuterBorders;
     public static int timeoutAfterCrownStolen;
     public static int crownLifespan;
+    
+    public static boolean nerf_shouldNerf;
+    public static float nerf_maxDamage;
+    public static float nerf_curveModifier;
+    
+    public static double nerf_rapierModifier;
+    public static double nerf_projectileModifier;
     
     public static IScoreObjectiveCriteria crownsStolenCriteria = new ScoreDummyCriteria("crownsStolen");
 
@@ -123,6 +130,11 @@ public class Dorfprojekt
     	timeoutAfterCrownStolen = config.get("General", "TimeoutAfterCrownStolen", 43200, "The time in seconds in which a team is unattackable after its crown has been stolen").getInt() * 20;
     	crownLifespan = config.get("General", "crownLifespan", 30, "The time in seconds it takes for the crown to respawn after being dropped").getInt() * 20;
 
+    	nerf_shouldNerf = config.get("Nerf", "ShouldNerf", true, "Should nerfing of attack damage be enabled?").getBoolean();
+    	nerf_maxDamage = config.getFloat("MaxDamage", "Nerf", 15f, 1f, Float.MAX_VALUE, "The maximum attack damage to achieve");
+    	nerf_curveModifier = config.getFloat("CurveModifier", "Nerf", 1.15f, 1f, Float.MAX_VALUE, "A modifier for the curve, more means more damage");
+    	nerf_rapierModifier = config.get("Nerf", "RapierModifier", 0.2, "Modifier for the TConstruct Rapier").getDouble();
+    	nerf_projectileModifier = config.get("Nerf", "ProjectileModifier", 0.1, "Modifier for TConstruct Projectiles").getDouble();
     }
     
     public static FMLProxyPacket getConfigPacket()
@@ -137,6 +149,11 @@ public class Dorfprojekt
     	StreamHelper.writeBoolean(slowdownInOuterBorders);
     	StreamHelper.writeInt(timeoutAfterCrownStolen);
     	StreamHelper.writeInt(crownLifespan);
+    	StreamHelper.writeBoolean(nerf_shouldNerf);
+    	StreamHelper.writeFloat(nerf_maxDamage);
+    	StreamHelper.writeFloat(nerf_curveModifier);
+    	StreamHelper.writeDouble(nerf_rapierModifier);
+    	StreamHelper.writeDouble(nerf_projectileModifier);
     	
     	return StreamHelper.getPacket();
     }
@@ -151,6 +168,16 @@ public class Dorfprojekt
     	slowdownInOuterBorders = StreamHelper.readBoolean();
     	timeoutAfterCrownStolen = StreamHelper.readInt();
     	crownLifespan = StreamHelper.readInt();
-    	
+    	nerf_shouldNerf = StreamHelper.readBoolean();
+    	nerf_maxDamage = StreamHelper.readFloat();
+    	nerf_curveModifier = StreamHelper.readFloat();
+    	nerf_rapierModifier = StreamHelper.readDouble();
+    	nerf_projectileModifier = StreamHelper.readDouble();
+    }
+    
+    public static float getNerfedDamage(float origDamage)
+    {
+    	if(origDamage < (nerf_maxDamage / 2)) return origDamage;
+    	else return (nerf_maxDamage - (nerf_maxDamage / ((float) Math.pow(nerf_curveModifier, origDamage))));
     }
 }

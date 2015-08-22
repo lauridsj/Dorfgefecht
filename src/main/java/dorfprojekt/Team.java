@@ -8,6 +8,7 @@ import java.util.UUID;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
@@ -35,7 +36,7 @@ public class Team {
 	public int innerZ2 = Integer.MIN_VALUE;
 
 	public String color = EnumChatFormatting.BLACK.getFriendlyName();
-	
+
 	public String name;
 
 	public ArrayList<UUID> players = new ArrayList<UUID>();
@@ -269,7 +270,7 @@ public class Team {
 				for(Object o : world.getEntitiesWithinAABB(EntityPlayer.class, getOuterBB()))
 				{
 					EntityPlayer player = (EntityPlayer) o;
-					if(!this.isPlayerInTeam(player))
+					if(!this.isPlayerInTeam(player) && ! player.capabilities.isCreativeMode)
 					{
 						this.teleportEntityToBorders(player);
 					}
@@ -324,29 +325,36 @@ public class Team {
 		return AxisAlignedBB.getBoundingBox(getMinOuterX(), 0, getMinOuterZ(), getMaxOuterX(), 256, getMaxOuterZ());
 	}
 
-	public void teleportEntityToBorders(Entity ent)
+	public void teleportEntityToBorders(EntityPlayer ent)
 	{
-		double x = ent.posX;
-		double z = ent.posZ;
-		int i = Util.getMinimalArg(getMaxOuterX() - x, getMaxOuterZ() - z, x - getMinOuterX(), z - getMinOuterZ());
-
-		switch(i)
+		if(FMLCommonHandler.instance().getEffectiveSide().isServer())
 		{
-		case 0:
-			x = getMaxOuterX() + 2;
-			break;
-		case 1:
-			z = getMaxOuterZ() + 2;
-			break;
-		case 2:
-			x = getMinOuterX() - 2;
-			break;
-		case 3:
-			z = getMinOuterZ() - 2;
-			break;
-		}
+			EntityPlayerMP emp = (EntityPlayerMP) ent;
+			double x = ent.posX;
+			double z = ent.posZ;
+			int i = Util.getMinimalArg(getMaxOuterX() - x, getMaxOuterZ() - z, x - getMinOuterX(), z - getMinOuterZ());
 
-		ent.setPosition(x, ent.worldObj.getTopSolidOrLiquidBlock(MathHelper.floor_double(x), MathHelper.floor_double(z)) + 2, z);
+			switch(i)
+			{
+			case 0:
+				x = getMaxOuterX() + 2;
+				break;
+			case 1:
+				z = getMaxOuterZ() + 2;
+				break;
+			case 2:
+				x = getMinOuterX() - 2;
+				break;
+			case 3:
+				z = getMinOuterZ() - 2;
+				break;
+			}
+
+			int y = Util.getTopBlock(ent.worldObj, MathHelper.floor_double(x), MathHelper.floor_double(z)) + 1;
+			System.out.printf("Teleporting to: %s %s %s\n", x, y, z);
+
+			emp.playerNetServerHandler.setPlayerLocation(x, y, z, emp.rotationPitch, emp.rotationYaw);
+		}
 	}
 
 	public void setBattleTimeout(int ticks)
@@ -369,7 +377,7 @@ public class Team {
 		{
 			s = ((double)ticks / 20d) + " s";
 		}
-		
+
 		if(ticks > 0)
 		{
 			this.setAttackable(false);
@@ -399,8 +407,8 @@ public class Team {
 				tcp2.hasCrown = true;
 				tcp2.markDirty();
 				Util.sendTileEntityUpdates(tcp2);
-				
-				
+
+
 			}
 			else if(FMLCommonHandler.instance().getEffectiveSide().isServer())
 			{
@@ -420,7 +428,7 @@ public class Team {
 
 
 	}
-	
+
 	public int getColor()
 	{
 		EnumChatFormatting ecf = EnumChatFormatting.getValueByName(color);
@@ -433,7 +441,7 @@ public class Team {
 			return Util.getColor(ecf);
 		}
 	}
-	
+
 	public String getColoredName()
 	{
 		if(color == null)
@@ -445,7 +453,7 @@ public class Team {
 			return Util.FORMAT_CHAR + EnumChatFormatting.getValueByName(color).getFormattingCode() + name + Util.FORMAT_CHAR + EnumChatFormatting.RESET.getFormattingCode();
 		}
 	}
-	
+
 	public TileCrownPodest getCrownPodest()
 	{
 		if(this.crownPodest != null && this.crownPodest.getTileEntity() != null && this.crownPodest.getTileEntity() instanceof TileCrownPodest)

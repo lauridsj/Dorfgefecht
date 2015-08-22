@@ -14,3 +14,5 @@ tile.crown_podest.name=Kronpodest
 tile.crown_podest.cantPlace=Das Kronpodest muss in einem leeren 3x3-Bereich platziert werden.
 
 item.crown.name=Krone
+
+death.attack.weapon=%1$s wurde von %2$s getötet

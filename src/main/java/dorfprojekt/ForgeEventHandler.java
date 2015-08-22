@@ -8,10 +8,13 @@ import java.util.Iterator;
 
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ChunkCoordinates;
+import net.minecraft.util.EntityDamageSourceIndirect;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.ChunkPosition;
@@ -19,7 +22,9 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.item.ItemExpireEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.event.world.ExplosionEvent;
@@ -28,6 +33,7 @@ import net.minecraftforge.event.world.WorldEvent;
 import com.google.common.io.Files;
 
 import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class ForgeEventHandler {
@@ -127,61 +133,67 @@ public class ForgeEventHandler {
 	@SubscribeEvent
 	public void onBlockPlace(BlockEvent.PlaceEvent event)
 	{
-		Team team = Team.getTeamForCoords(event.x, event.z);
-		if(team != null && !team.isPlayerInTeam(event.player))
+		if(event.player.dimension == 0)
 		{
-			if(team.isAttackable())
+			Team team = Team.getTeamForCoords(event.x, event.z);
+			if(team != null && !team.isPlayerInTeam(event.player))
 			{
-				if(team.blocksPlacedInArea.size() >= Dorfprojekt.maxPlaceableBlocks)
+				if(team.isAttackable())
 				{
-					Util.sendTranslatedChat(event.player, "dorfprojekt.noMoreBlocks");
-					event.setCanceled(true);
+					if(team.blocksPlacedInArea.size() >= Dorfprojekt.maxPlaceableBlocks)
+					{
+						Util.sendTranslatedChat(event.player, "dorfprojekt.noMoreBlocks");
+						event.setCanceled(true);
+					}
+					else
+					{
+						team.blocksPlacedInArea.add(new Coords4(event.world, event.x, event.y, event.z));
+					}
 				}
 				else
 				{
-					team.blocksPlacedInArea.add(new Coords4(event.world, event.x, event.y, event.z));
+					event.setCanceled(true);
 				}
-			}
-			else
-			{
-				event.setCanceled(true);
 			}
 		}
 	}
 
 	public boolean destroyBlock(World world, int x, int y, int z, EntityPlayer player)
 	{
-		TileEntity te = world.getTileEntity(x, y, z);
-		if(te instanceof TileCrownPodest)
+		if(world.provider.dimensionId == 0)
 		{
-			TileCrownPodest tcp = (TileCrownPodest) te;
-			if(tcp.getTeam() != Team.getTeamForPlayer(player))
+			TileEntity te = world.getTileEntity(x, y, z);
+			if(te instanceof TileCrownPodest)
 			{
-				return false;
-			}
-		}
-		
-		Team team = Team.getTeamForCoords(x, z);
-		if(team != null)
-		{
-			if(!team.isAttackable() && (player == null || !team.isPlayerInTeam(player)))
-			{
-				return false;
-			}
-			else
-			{
-				Coords4 coords = new Coords4(world, x, y, z);
-				team.blocksPlacedInArea.remove(coords);			
-				
-				if(FMLCommonHandler.instance().getEffectiveSide().isServer())
+				TileCrownPodest tcp = (TileCrownPodest) te;
+				if(tcp.getTeam() != Team.getTeamForPlayer(player))
 				{
-					if(team.isOnOuterBorder(x, z))
+					return false;
+				}
+			}
+
+			Team team = Team.getTeamForCoords(x, z);
+			if(team != null)
+			{
+				if(!team.isAttackable() && (player == null || !team.isPlayerInTeam(player)))
+				{
+					return false;
+				}
+				else
+				{
+					Coords4 coords = new Coords4(world, x, y, z);
+					team.blocksPlacedInArea.remove(coords);			
+
+					if(FMLCommonHandler.instance().getEffectiveSide().isServer())
 					{
-						BlockBorder.scheduledBorders.put(new Coords4(world, x, y, z), 0);
-					}
-					else if(team.isOnInnerBorder(x, z))
-					{
-						BlockBorder.scheduledBorders.put(new Coords4(world, x, y, z), 1);
+						if(team.isOnOuterBorder(x, z))
+						{
+							BlockBorder.scheduledBorders.put(new Coords4(world, x, y, z), 0);
+						}
+						else if(team.isOnInnerBorder(x, z))
+						{
+							BlockBorder.scheduledBorders.put(new Coords4(world, x, y, z), 1);
+						}
 					}
 				}
 			}
@@ -192,27 +204,30 @@ public class ForgeEventHandler {
 	@SubscribeEvent
 	public void onPlayerBreakSpeed(PlayerEvent.BreakSpeed event)
 	{
-		Team team;
-		if(Dorfprojekt.slowdownInOuterBorders)
+		if(event.entityPlayer.dimension == 0)
 		{
-			team = Team.getTeamForCoords(event.x, event.z);
-		}
-		else
-		{
-			team = Team.getTeamForCoordsWithInnerBorders(event.x, event.z);
-		}
-		if(team != null)
-		{
-			if(team.isPlayerInTeam(event.entityPlayer))
+			Team team;
+			if(Dorfprojekt.slowdownInOuterBorders)
 			{
-				if(team.isCurrentlyAttacked(event.entityPlayer.worldObj))
-				{
-					event.newSpeed *= Dorfprojekt.breakSpeedMultiplierFriendly;
-				}
+				team = Team.getTeamForCoords(event.x, event.z);
 			}
 			else
 			{
-				event.newSpeed *= Dorfprojekt.breakSpeedMultiplierEnemy;
+				team = Team.getTeamForCoordsWithInnerBorders(event.x, event.z);
+			}
+			if(team != null)
+			{
+				if(team.isPlayerInTeam(event.entityPlayer))
+				{
+					if(team.isCurrentlyAttacked(event.entityPlayer.worldObj))
+					{
+						event.newSpeed *= Dorfprojekt.breakSpeedMultiplierFriendly;
+					}
+				}
+				else
+				{
+					event.newSpeed *= Dorfprojekt.breakSpeedMultiplierEnemy;
+				}
 			}
 		}
 	}
@@ -224,15 +239,15 @@ public class ForgeEventHandler {
 		{
 			EntityPlayer player = (EntityPlayer) event.entityLiving;
 			Team team = Team.getTeamForCoords(MathHelper.floor_double(player.posX), MathHelper.floor_double(player.posZ));
-			if(!player.capabilities.isCreativeMode && team != null && !team.isAttackable() && team != Team.getTeamForPlayer(player))
+			if(player.dimension == 0 && !player.capabilities.isCreativeMode && team != null && !team.isAttackable() && team != Team.getTeamForPlayer(player))
 			{
 				team.teleportEntityToBorders(player);
 			}
-			
-			
+
+
 		}
 	}
-	
+
 	@SubscribeEvent
 	public void onItemExpire(ItemExpireEvent event)
 	{
@@ -247,7 +262,7 @@ public class ForgeEventHandler {
 			}
 		}
 	}
-	
+
 	@SubscribeEvent	
 	public void onEntityJoinWorld(EntityJoinWorldEvent event)
 	{
@@ -260,12 +275,12 @@ public class ForgeEventHandler {
 				eitem.writeToNBT(tag);
 				tag.setBoolean("Invulnerable", true);
 				eitem.readFromNBT(tag);
-				
+
 				eitem.lifespan = Dorfprojekt.crownLifespan;
 			}
 		}
 	}
-	
+
 	@SubscribeEvent
 	public void onPlayerNameFormat(PlayerEvent.NameFormat event)
 	{
@@ -277,4 +292,69 @@ public class ForgeEventHandler {
 		}
 	}
 	
+	@SubscribeEvent(priority=EventPriority.HIGH)
+	public void onLivingDeath(LivingDeathEvent event)
+	{
+		if(event.entityLiving instanceof EntityPlayer)
+		{
+			EntityPlayer player = (EntityPlayer) event.entityLiving;
+			for(int i = 0; i < player.inventory.getSizeInventory(); i++)
+			{
+				ItemStack stack = player.inventory.getStackInSlot(i);
+				if(stack != null && stack.getItem() == Dorfprojekt.crownItem && ItemCrown.getTeam(stack) != null)
+				{
+					System.out.printf("Dropping %s from player %s\n", stack, player.getCommandSenderName());
+					player.entityDropItem(stack, 1f);
+					player.inventory.setInventorySlotContents(i, null);
+				}
+			}
+			
+			Team team = Team.getTeamForPlayer(player);
+			if(team != null)
+			{
+				if(team.getCrownPodest() != null && team.getCrownPodest().hasCrown)
+				{
+					TileEntity te = team.getCrownPodest();
+					System.out.printf("Respawning with crown at %s %s %s\n", te.xCoord, te.yCoord, te.zCoord);
+					player.setSpawnChunk(new ChunkCoordinates(te.xCoord, te.yCoord + 1, te.zCoord), true);
+				}
+				else
+				{
+					World w = MinecraftServer.getServer().getEntityWorld();
+					ChunkCoordinates cc = w.getSpawnPoint();
+					System.out.printf("Respawning without crown at %s %s %s\n", cc.posX, cc.posY, cc.posZ);
+					player.setSpawnChunk(cc, true);
+				}
+			}
+		}
+	}
+	
+	@SubscribeEvent
+	public void onLivingHurt(LivingHurtEvent event)
+	{
+		if(Dorfprojekt.nerf_shouldNerf && event.source.getEntity() != null && event.source.getEntity() instanceof EntityPlayer)
+		{
+			System.out.printf("Nerfing damage on %s (%s points of %s) from %s\n", event.entityLiving, event.ammount, event.source.getDamageType(), event.source.getEntity());
+			event.ammount = Dorfprojekt.getNerfedDamage(event.ammount);
+		}
+		
+		if(event.source.getEntity() instanceof EntityPlayer)
+		{
+			EntityPlayer player = (EntityPlayer) event.source.getEntity();
+			if(player.getHeldItem().getItem().getUnlocalizedName().equals("InfiTool.Rapier"))
+			{
+				event.ammount *= 0.2;
+			}
+		}
+		
+		if(event.source instanceof EntityDamageSourceIndirect)
+		{
+			EntityDamageSourceIndirect edsi = (EntityDamageSourceIndirect) event.source;
+			if(Util.containsIgnoreCase(edsi.getSourceOfDamage().getClass().getSimpleName(), "BoltEntity", "JavelinEntity", "ShurikenEntity", "ThrowingKnifeEntity"))
+			{
+				event.ammount *= 0.1;
+			}
+		}
+	}
+
 }

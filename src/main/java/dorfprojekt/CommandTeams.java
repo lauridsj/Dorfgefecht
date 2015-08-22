@@ -28,15 +28,20 @@ public class CommandTeams extends CommandBase {
 
 	@Override
 	public String getCommandUsage(ICommandSender p_71518_1_) {
-		return "/teams <create|delete|listplayers|buildborders|givecrown|settimeout> <team>\n	OR /teams <addplayer|removeplayer> <team> <player>\n	OR /teams setborders <team> <inner|outer> <pos1|pos2>\n	OR /teams setcolor <team> <red> <green> <blue>";
+		return "/teams <create|delete|listplayers|buildborders|givecrown|settimeout> <team>\n	OR /teams <addplayer|removeplayer> <team> <player>\n	OR /teams setborders <team> <inner|outer> <pos1|pos2>\n	OR /teams setcolor <team> <red> <green> <blue> OR /teams reloadconfig";
 	}
 
 	@Override
 	public void processCommand(ICommandSender sender, String[] args) 
 	{
-		if(args.length <= 1)
+		if(args.length == 1)
 		{
-			throw new WrongUsageException("Need more arguments!", new Object[0]);
+			if(args[0].equalsIgnoreCase("reloadconfig"))
+			{
+				Dorfprojekt.loadConfig();
+				Dorfprojekt.networkChannel.sendToAll(Dorfprojekt.getConfigPacket());
+				Util.sendChat(sender, "Reloaded config.");
+			}
 		}
 
 		else if(args.length == 2)
@@ -150,7 +155,10 @@ public class CommandTeams extends CommandBase {
 					if(Team.getTeamForPlayer(player) == team)
 					{
 						Team.setTeamForPlayer(player, null);
-						player.getWorldScoreboard().removePlayerFromTeam(player.getCommandSenderName(), player.getWorldScoreboard().getTeam(team.name));
+						if(player.getTeam() == player.getWorldScoreboard().getTeam(team.name))
+						{
+							player.getWorldScoreboard().removePlayerFromTeam(player.getCommandSenderName(), player.getWorldScoreboard().getTeam(team.name));
+						}
 						Util.sendChat(sender, "Removed player " + args[2] + " for team " + args[1]);
 					}
 					else
@@ -276,7 +284,7 @@ public class CommandTeams extends CommandBase {
 	{
 		if(args.length < 2)
 		{
-			return getListOfStringsMatchingLastWord(args, "create", "delete", "addplayer", "removeplayer", "listplayers", "setborders", "setcolor", "buildborders", "givecrown", "settimeout", "setpoints");
+			return getListOfStringsMatchingLastWord(args, "create", "delete", "addplayer", "removeplayer", "listplayers", "setborders", "setcolor", "buildborders", "givecrown", "settimeout", "setpoints", "reloadconfig");
 		}
 		else if(args.length < 3)
 		{

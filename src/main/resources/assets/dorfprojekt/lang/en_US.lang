@@ -14,3 +14,5 @@ tile.crown_podest.name=Crown Podest
 tile.crown_podest.cantPlace=The Crown Podest must be placed in an empty 3x3 cube.
 
 item.crown.name=Crown
+
+death.attack.weapon=%1$s was killed by %2$s

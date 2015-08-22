@@ -3,7 +3,7 @@
   "modid": "dorfprojekt",
   "name": "Dorfprojekt",
   "description": "PinguinBiFi",
-  "version": "08",
+  "version": "10",
   "mcversion": "${mcversion}",
   "url": "",
   "updateUrl": "",

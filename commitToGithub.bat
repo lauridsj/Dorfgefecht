@@ -4,3 +4,4 @@ git add *
 git commit -m "%commitMsg%"
 git push origin master
 @echo Uploaded sucessfully!
+pause

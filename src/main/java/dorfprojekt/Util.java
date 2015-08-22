@@ -243,4 +243,16 @@ public class Util {
 		return false;
 	}
 	
+	public static int getTopBlock(World world, int x, int z)
+	{
+		for(int i = world.getHeight() - 1; i > 0; i--)
+		{
+			if(world.getBlock(x, i, z) != Blocks.air)
+			{
+				return i;
+			}
+		}
+		return -1;
+	}
+	
 }

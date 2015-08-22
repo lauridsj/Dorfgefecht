@@ -123,6 +123,7 @@ public class FMLEventHandler {
 		Dorfprojekt.loadConfig();
 	}
 	
+	/*
 	@SubscribeEvent
 	public void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event)
 	{
@@ -132,15 +133,17 @@ public class FMLEventHandler {
 			if(team.getCrownPodest() != null)
 			{
 				TileEntity te = team.getCrownPodest();
-				event.player.setPosition(te.xCoord + 0.5, te.yCoord + 1, te.zCoord + 0.5);
+				System.out.printf("Respawning with crown at %s %s %s\n", te.xCoord, te.yCoord, te.zCoord);
+				event.player.setLocationAndAngles(te.xCoord + 0.5, te.yCoord + 2, te.zCoord + 0.5, event.player.rotationPitch, event.player.rotationYaw);
 			}
 			else
 			{
 				World w = MinecraftServer.getServer().getEntityWorld();
 				ChunkCoordinates cc = w.getSpawnPoint();
-				event.player.setPosition(cc.posX, cc.posY, cc.posZ);
+				System.out.printf("Respawning without crown at %s %s %s\n", cc.posX, cc.posY, cc.posZ);
+				event.player.setLocationAndAngles(cc.posX, cc.posY, cc.posZ, event.player.rotationPitch, event.player.rotationYaw);
 			}
 		}
-	}
+	}*/
 	
 }
